@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            color: green;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h2>Login for Users</h2>
+        <form id="loginForm">
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+            <p class="message" id="message" name="message"></p>
+        </form>
+    </div>
+
+    <script>
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Get form data
+            const formData = JSON.stringify({
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+            });
+
+            const requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: formData,
+                redirect: 'follow'
+            };
+
+            fetch("http://localhost:8081/auth/signin", requestOptions)
+                // text.token
+                // text.message, text.errorCode
+                .then((response) => response.json().then(function (text) {
+                    if (typeof text.token !== 'undefined') {
+                        document.getElementById('message').innerHTML = text.token;
+                        sessionStorage.setItem('jwtToken', text.token);
+                        window.location.href = "admindashboard.html";
+                        alert('Login Successful');
+                    } else {
+                        document.getElementById('message').innerHTML = text.message;
+                        alert('Login Failed');
+                    }
+                }))
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+        });
+    </script>
+</body>
+
+</html>

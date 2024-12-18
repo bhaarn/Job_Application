@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .form-container td {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            color: green;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .login-link a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h2>Registration for Employer</h2>
+        <form id="registrationForm">
+
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="mobile">Mobile Number</label>
+            <input type="tel" id="mobile" name="mobile" required>
+
+            <label for="jobTable">Job Details</label>
+            <table id="jobTable">
+                <tr>
+                    <td><input type="text" class="jobName" placeholder="Job Name (e.g., Developer)"></td>
+                    <td><input type="number" class="salary" placeholder="Salary (e.g., 120000)"></td>
+                    <td><input type="text" class="description" placeholder="Description (e.g., Core Java)"></td>
+                    <td><input type="text" class="type" placeholder="Type (e.g., IT / Non IT)"></td>
+                    <td><input type="checkbox" class="availability"> Availability</td>
+                </tr>
+            </table>
+
+            <button type="button" onclick="addRow()">Add Row</button><br><br>
+            <button type="button" onclick="generateJSON()">Register</button>
+            <p class="message" id="message" name="message"></p>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="employerlogin.html">Login here</a></p>
+        </div>
+
+    </div>
+
+    <script>
+        function addRow() {
+            const table = document.getElementById("jobTable");
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td><input type="text" class="jobName" placeholder="Job Name"></td>
+                <td><input type="number" class="salary" placeholder="Salary"></td>
+                <td><input type="text" class="description" placeholder="Description"></td>
+                <td><input type="text" class="type" placeholder="type"></td>
+                <td><input type="checkbox" class="availability"> Availability</td>
+            `;
+            table.appendChild(newRow);
+        }
+
+        async function generateJSON() {
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            let formNeoEmployerData = {
+                name: document.getElementById('name').value,
+                company: document.getElementById('name').value
+            };
+
+            let formNeoEmployerString = JSON.stringify(formNeoEmployerData, null, 4);
+
+            const requestNeoEmployerOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: formNeoEmployerString,
+                redirect: 'follow'
+            };
+
+            await fetch("http://localhost:8080/api/job/employer/add", requestNeoEmployerOptions)
+                .then(async (response) => response.json().then(function (text) {
+                    if (typeof text.name !== 'undefined') {
+                        alert('Neo4J Employer Addition Successful');
+                    } else {
+                        alert('Neo4J Employer Addition Failed');
+                    }
+                }))
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            let formData = {
+                name: document.getElementById('name').value,
+                username: document.getElementById('username').value,
+                emailAddress: document.getElementById('email').value,
+                phoneNumber: document.getElementById('mobile').value,
+                password: document.getElementById('password').value,
+                job: {
+                    items: []
+                }
+            };
+
+            const rows = document.querySelectorAll("#jobTable tr");
+            await rows.forEach(row => {
+                let job = {};
+                job.name = row.querySelector(".jobName") ? row.querySelector(".jobName").value : "";
+                job.salary = row.querySelector(".salary") ? parseInt(row.querySelector(".salary").value) : 0;
+                job.description = row.querySelector(".description") ? row.querySelector(".description").value : "";
+                job.type = row.querySelector(".type") ? row.querySelector(".type").value : "";
+                job.availability = row.querySelector(".availability") ? row.querySelector(".availability").checked : false;
+
+                let formNeoJobData = {
+                    title: job.name,
+                    description: job.description,
+                    employer: {
+                        name: formNeoEmployerData.name
+                    }
+                };
+
+                let jsonNeoJobString = JSON.stringify(formNeoJobData, null, 4);
+
+                const requestNeoJobOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: jsonNeoJobString,
+                    redirect: 'follow'
+                };
+
+                fetch("http://localhost:8080/api/job/add", requestNeoJobOptions)
+                    .then(async (response) => response.json().then(function (text) {
+                        if (typeof text.title !== 'undefined') {
+                            alert('Neo4J Job Addition Successful');
+                        } else {
+                            alert('Neo4J Job Addition Failed');
+                        }
+                    }))
+                    .then((result) => console.log(result))
+                    .catch((error) => console.error(error));
+
+                if (job.name && job.salary && job.description && job.type) {
+                    formData.job.items.push(job);
+                }
+            });
+
+            let jsonString = JSON.stringify(formData, null, 4);
+            //   document.getElementById('message').textContent = jsonString;
+
+            const requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: jsonString,
+                redirect: 'follow'
+            };
+
+            await fetch("http://localhost:8081/api/employer/register", requestOptions)
+                .then(async (response) => response.json().then(function (text) {
+                    if (typeof text.id !== 'undefined') {
+                        document.getElementById('message').innerHTML = text.id;
+                        sessionStorage.setItem('employerId', text.id);
+                        alert('Registration Successful');
+                    } else {
+                        document.getElementById('message').innerHTML = text.message + "-" + text.errors;
+                        alert('Registration Failed');
+                    }
+                }))
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+        }
+
+    </script>
+</body>
+
+</html>

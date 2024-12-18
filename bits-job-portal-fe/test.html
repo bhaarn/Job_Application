@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .application-item {
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .application-item p {
+      margin: 5px 0;
+    }
+
+    select,
+    input[type="radio"] {
+      margin-top: 5px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Application List</h2>
+  <div id="application-list"></div>
+  <button id="submitBtn">Submit</button>
+
+  <script>
+    const data = [
+      {
+        "id": "6745c09ef4cdc706bca0f0b8",
+        "employeeId": "6745bf99f4cdc706bca0f0b0",
+        "employerId": "6745c078f4cdc706bca0f0b7",
+        "applicationItem": {
+          "jobItemId": "6745c078f4cdc706bca0f0b2"
+        },
+        "status": "APPLIED",
+        "salary": 1200000.0,
+        "createdDate": "2024-11-26T18:05:42.396"
+      },
+      {
+        "id": "6745c46ff4cdc706bca0f0b9",
+        "employeeId": "6745bf99f4cdc706bca0f0b0",
+        "employerId": "6745c078f4cdc706bca0f0b7",
+        "applicationItem": {
+          "jobItemId": "6745c078f4cdc706bca0f0b2"
+        },
+        "status": "APPLIED",
+        "salary": 1200000.0,
+        "createdDate": "2024-11-26T18:21:59.678"
+      }
+    ];
+
+    // Function to generate the application list HTML
+    function displayApplications() {
+      const applicationListDiv = document.getElementById('application-list');
+      applicationListDiv.innerHTML = ''; // Clear previous content
+
+      // Loop through the data and generate HTML
+      data.forEach((item, index) => {
+        const applicationDiv = document.createElement('div');
+        applicationDiv.classList.add('application-item');
+
+        applicationDiv.innerHTML = `
+          <p><strong>Application ID:</strong> ${item.id}</p>
+          <p><strong>Employee ID:</strong> ${item.employeeId}</p>
+          <p><strong>Salary:</strong> $${item.salary.toLocaleString()}</p>
+          <p><strong>Created Date:</strong> ${new Date(item.createdDate).toLocaleString()}</p>
+
+          <label for="status-${index}"><strong>Status:</strong></label>
+          <select id="status-${index}" ${item.selected ? '' : 'disabled'}>
+            <option value="PROCESSING" ${item.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+            <option value="ONHOLD" ${item.status === 'ONHOLD' ? 'selected' : ''}>ONHOLD</option>
+            <option value="SELECTED" ${item.status === 'SELECTED' ? 'selected' : ''}>SELECTED</option>
+            <option value="REJECTED" ${item.status === 'REJECTED' ? 'selected' : ''}>REJECTED</option>
+            <option value="JOINED" ${item.status === 'JOINED' ? 'selected' : ''}>JOINED</option>
+            <option value="CANCELLED" ${item.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+          </select>
+          
+          <label for="select-${index}">
+            <input type="radio" name="select-application" id="select-${index}" value="${index}">
+            Select to Edit Status
+          </label>
+        `;
+
+        applicationListDiv.appendChild(applicationDiv);
+      });
+    }
+
+    // Function to handle the radio button selection and enable/disable the dropdown
+    function handleRadioSelection() {
+      const radios = document.querySelectorAll('input[name="select-application"]');
+      radios.forEach((radio, index) => {
+        const statusDropdown = document.getElementById(`status-${index}`);
+
+        // Enable the dropdown if the radio is selected, otherwise disable it
+        if (radio.checked) {
+          statusDropdown.disabled = false;  // Enable dropdown for the selected item
+        } else {
+          statusDropdown.disabled = true;   // Disable dropdown for non-selected items
+        }
+      });
+    }
+
+    // Function to handle the submit action
+    function updateStatus() {
+      const selectedIndex = document.querySelector('input[name="select-application"]:checked');
+
+      if (selectedIndex) {
+        const index = selectedIndex.value;
+        const statusElement = document.getElementById(`status-${index}`);
+        const updatedStatus = statusElement.value;
+
+        // Update the status in the data array
+        data[index].status = updatedStatus;
+
+        console.log('Updated Status:', data[index].id + " - " + data[index].status);
+
+        // Show confirmation to the user
+        alert('Status updated successfully!');
+      } else {
+        alert('Please select an application to update the status.');
+      }
+    }
+
+    // Event listener for the submit button
+    document.getElementById('submitBtn').addEventListener('click', updateStatus);
+
+    // Event listener for the radio buttons to handle enabling/disabling the dropdowns
+    document.addEventListener('change', function (e) {
+      if (e.target.name === 'select-application') {
+        handleRadioSelection();
+      }
+    });
+
+    // Call function to display applications on page load
+    displayApplications();
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container button {
+            width: 25%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            border: 1px solid #ccc;
+            margin: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user-container {
+            border: 1px solid #ccc;
+            margin: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .job-item {
+            margin-left: 20px;
+        }
+
+        .job-item label {
+            display: block;
+        }
+
+        .radio-label {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .radio-label input {
+            margin-right: 10px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+    <p id="welcomeMessage"></p>
+
+    <button onclick="logout()">Logout</button>
+
+    <h2>Job Selections</h2>
+    <div id="user-list"></div>
+
+    <button onclick="placeApplication()">Submit Application</button>
+    <button onclick="viewApplicationHistory()">View Application History</button>
+    <br><br>
+
+    <label for="appId">Application ID</label>
+    <input type="text" id="appId" name="appId" required>
+    <button onclick="viewApplicationStatus()">View Application Status</button>
+    <div class="message" id="message" name="message"></div>
+    </div>
+
+    <script>
+        // Check if the token exists in sessionStorage
+        const token = sessionStorage.getItem('jwtToken');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        let selectedJobItem = "";
+
+        if (token) {
+            // If the token exists, display a welcome message
+            welcomeMessage.innerText = "You are logged in!";
+        } else {
+            // If the token does not exist, redirect to login page
+            window.location.href = "employeelogin.html";
+        }
+
+        fetchProtectedData();
+
+        // Function to fetch protected data using the JWT token
+        function fetchProtectedData() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                // Example API request using the JWT token
+                fetch('http://localhost:8081/api/employer/getallemployer', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        renderUserList(data);
+                        let selectedJob = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function renderUserList(data) {
+            const userList = document.getElementById("user-list");
+            userList.innerHTML = ""; // Clear existing content
+
+            data.forEach(user => {
+                const userContainer = document.createElement("div");
+                userContainer.classList.add("user-container");
+
+                // User name, email, and phone
+                const userInfo = `
+                <h3>Company Name: ${user.name}</h3>
+                <p><strong>Email:</strong> ${user.emailAddress}</p>
+                <p><strong>Phone:</strong> ${user.phoneNumber}</p>
+                <p><strong>Please select any of the Jobs below</strong></p>
+            `;
+                userContainer.innerHTML = userInfo;
+
+                sessionStorage.setItem('neoEmployerName', user.name);
+
+                // Create a container for job items
+                const jobContainer = document.createElement("div");
+                user.job.items.forEach(item => {
+                    if (item.availability) {
+                        // Only show available jobs
+                        const jobItemContainer = document.createElement("div");
+                        jobItemContainer.classList.add("job-item");
+
+                        const jobItemRadio = `
+                        <label class="radio-label">
+                            <input type="radio" name="job-selection" data-user-id="${user.id}" data-item-id="${item.id}" data-item-name="${item.name}" value="${item.id}">
+                            <span>${item.description} ${item.name} - ${item.type} (Salary: $${item.salary})</span>
+                            <br><br>
+                        </label>
+                    `;
+                        jobItemContainer.innerHTML = jobItemRadio;
+                        jobContainer.appendChild(jobItemContainer);
+                    }
+                });
+
+                userContainer.appendChild(jobContainer);
+                userList.appendChild(userContainer);
+            });
+
+            // Add event listeners for radio buttons
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', handleRadioChange);
+            });
+        }
+
+        function handleRadioChange(event) {
+            const radio = event.target;
+            const employeeId = sessionStorage.getItem('employeeId');
+            const userId = radio.getAttribute('data-user-id');
+            const itemId = radio.getAttribute('data-item-id');
+            sessionStorage.setItem('neoJobName', radio.getAttribute('data-item-name'));
+            console.log("Bharani", sessionStorage.getItem('neoJobName'));
+
+            selectedJob = {
+                employeeId: employeeId,
+                employerId: userId,
+                applicationItem: {
+                    jobItemId: itemId
+                }
+            };
+            console.log("Formatted Job Submission:", selectedJob);
+            selectedJobItem = selectedJob;
+        }
+
+        function placeApplication() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                const myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+                myHeaders.append("Authorization", "Bearer " + token);
+
+                const requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: JSON.stringify(selectedJobItem),
+                    redirect: 'follow'
+                };
+
+                fetch("http://localhost:8081/api/application", requestOptions)
+                    .then((response) => response.json().then(function (text) {
+                        if (typeof text.id !== 'undefined') {
+                            document.getElementById('message').innerHTML = text.id;
+                            sessionStorage.setItem('applicationId', text.id);
+                            alert('Application Registration Successful');
+                        } else {
+                            document.getElementById('message').innerHTML = text.message + "-" + text.errorCode;
+                            alert('Application Registration Failed');
+                        }
+                    }))
+                    .then((result) => console.log(result))
+                    .catch((error) => console.error(error));
+
+                let formNeoData = {
+                name: sessionStorage.getItem('neoEmployeeName'),
+                };
+
+                const myNeoHeaders = new Headers();
+                myNeoHeaders.append("Content-Type", "application/json");
+                const requestNeoOptions = {
+                    method: 'PUT',
+                    headers: myNeoHeaders,
+                    body: JSON.stringify(formNeoData),
+                    redirect: 'follow'
+                };
+
+                const neoJobName = sessionStorage.getItem('neoJobName');
+                fetch(`http://localhost:8080/api/job/employee/${neoJobName}/apply`, requestNeoOptions)
+                .then((response) => response.json().then(function (text) {
+                    if (typeof text.title !== 'undefined') {
+                        alert('Application Registration Successful');
+                    } else {
+                        alert('Application Registration Failed');
+                    }
+                }))
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            }
+        }
+
+        function viewApplicationHistory() {
+            const employeeId = sessionStorage.getItem('employeeId');
+            const token = sessionStorage.getItem('jwtToken');
+            let htmlContent = '';
+            if (token) {
+                // Example API request using the JWT token
+                fetch(`http://localhost:8081/api/employee/${employeeId}/applications`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            htmlContent += `
+                    <div>
+                        <p><b>Application ID:</b> ${item.id}</p>
+                        <p><b>Employer ID:</b> ${item.employerId}</p>
+                        <p><b>Salary :</b> ${item.salary}</p>
+                        <p><b>Status:</b> ${item.status}</p>
+                        <br>
+                    </div>
+                    `;
+                        });
+
+                        // Insert the generated HTML into the desired element (e.g., a div with id 'message')
+                        document.getElementById('message').innerHTML = htmlContent;
+
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function viewApplicationStatus() {
+            const appId = document.getElementById('appId').value;
+            const token = sessionStorage.getItem('jwtToken');
+            let htmlContent = '';
+            if (token) {
+                // Example API request using the JWT token
+                fetch(`http://localhost:8081/api/application/${appId}/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        htmlContent += `
+                    <div>
+                        <p><b>Application ID :</b> ${data.id}</p>
+                        <p><b>Employer ID :</b> ${data.employerId}</p>
+                        <p><b>Salary :</b> ${data.salary}</p>
+                        <p><b>Status :</b> ${data.status}</p>
+                        <br>
+                    </div>
+                    `;
+                        document.getElementById('message').innerHTML = htmlContent;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('jwtToken');
+            window.location.href = "employeelogin.html";
+        }
+    </script>
+</body>
+
+</html>

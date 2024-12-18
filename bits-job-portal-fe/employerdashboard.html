@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container button {
+            width: 25%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            border: 1px solid #ccc;
+            margin: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .application-item {
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .application-item p {
+            margin: 5px 0;
+        }
+
+        select,
+        input[type="radio"] {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+    <p id="welcomeMessage"></p>
+
+    <button onclick="logout()">Logout</button>
+
+    <h2>Job Applications</h2>
+    <div id="application-list"></div>
+
+    <button onclick="updateApplication()">Update Application</button>
+    <br><br>
+    <p class="message" id="message" name="message"></p>
+    </div>
+
+    <script>
+        // Check if the token exists in sessionStorage
+        const token = sessionStorage.getItem('jwtToken');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        let selectedJobItem = "";
+        let finalData = "";
+
+        if (token) {
+            // If the token exists, display a welcome message
+            welcomeMessage.innerText = "You are logged in!";
+        } else {
+            // If the token does not exist, redirect to login page
+            window.location.href = "employerlogin.html";
+        }
+
+        fetchProtectedData();
+
+        // Function to fetch protected data using the JWT token
+        function fetchProtectedData() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                // Example API request using the JWT token
+                fetch('http://localhost:8081/api/application/getallapplication', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        renderApplicationList(data);
+                        finalData = data;
+                        let selectedApplication = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function renderApplicationList(data) {
+            const applicationListDiv = document.getElementById('application-list');
+            applicationListDiv.innerHTML = ''; // Clear previous content
+
+            // Loop through the data and generate HTML
+            data.forEach((item, index) => {
+                const applicationDiv = document.createElement('div');
+                applicationDiv.classList.add('application-item');
+
+                applicationDiv.innerHTML = `
+          <p><strong>Application ID:</strong> ${item.id}</p>
+          <p><strong>Employee ID:</strong> ${item.employeeId}</p>
+          <p><strong>Salary:</strong> $${item.salary.toLocaleString()}</p>
+          <p><strong>Created Date:</strong> ${new Date(item.createdDate).toLocaleString()}</p>
+
+          <label for="status-${index}"><strong>Status:</strong></label>
+          <select id="status-${index}" ${item.selected ? '' : 'disabled'}>
+            <option value="PROCESSING" ${item.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+            <option value="ONHOLD" ${item.status === 'ONHOLD' ? 'selected' : ''}>ONHOLD</option>
+            <option value="SELECTED" ${item.status === 'SELECTED' ? 'selected' : ''}>SELECTED</option>
+            <option value="REJECTED" ${item.status === 'REJECTED' ? 'selected' : ''}>REJECTED</option>
+            <option value="JOINED" ${item.status === 'JOINED' ? 'selected' : ''}>JOINED</option>
+            <option value="CANCELLED" ${item.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+          </select>
+          
+          <label for="select-${index}">
+            <input type="radio" name="select-application" id="select-${index}" value="${index}">
+            <b>Select to Edit Status<b>
+          </label>
+        `;
+
+                applicationListDiv.appendChild(applicationDiv);
+            });
+        }
+
+        // Function to handle the radio button selection and enable/disable the dropdown
+        function handleRadioSelection() {
+            const radios = document.querySelectorAll('input[name="select-application"]');
+            radios.forEach((radio, index) => {
+                const statusDropdown = document.getElementById(`status-${index}`);
+
+                // Enable the dropdown if the radio is selected, otherwise disable it
+                if (radio.checked) {
+                    statusDropdown.disabled = false;  // Enable dropdown for the selected item
+                } else {
+                    statusDropdown.disabled = true;   // Disable dropdown for non-selected items
+                }
+            });
+        }
+
+        // Function to handle the submit action
+        function updateApplication() {
+            const selectedIndex = document.querySelector('input[name="select-application"]:checked');
+
+            if (selectedIndex) {
+                const index = selectedIndex.value;
+                const statusElement = document.getElementById(`status-${index}`);
+                const updatedStatus = statusElement.value;
+
+                // Update the status in the data array
+                finalData[index].status = updatedStatus;
+                submitApplicationStatus(finalData[index].id, finalData[index].status);
+                console.log('Updated Status:', finalData[index].id + " - " + finalData[index].status);
+
+                // Show confirmation to the user
+                alert('Status updated successfully!');
+            } else {
+                alert('Please select an application to update the status.');
+            }
+        }
+
+        function submitApplicationStatus(id, status) {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                const myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+                myHeaders.append("Authorization", "Bearer " + token);
+
+                let formData = JSON.stringify({
+                    status: status
+                });
+
+                const requestOptions = {
+                    method: 'PUT',
+                    headers: myHeaders,
+                    body: formData,
+                    redirect: 'follow'
+                };
+
+                fetch(`http://localhost:8081/api/application/${id}/status`, requestOptions)
+                    .then((response) => response.json().then(function (text) {
+                        if (typeof text.id !== 'undefined') {
+                            document.getElementById('message').innerHTML = text.id;
+                            alert('Status Update Successful');
+                        } else {
+                            document.getElementById('message').innerHTML = text.message + "-" + text.errorCode;
+                            alert('Status Update Failed');
+                        }
+                    }))
+                    .then((result) => console.log(result))
+                    .catch((error) => console.error(error));
+            }
+        }
+
+        // Event listener for the radio buttons to handle enabling/disabling the dropdowns
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'select-application') {
+                handleRadioSelection();
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('jwtToken');
+            window.location.href = "employerlogin.html";
+        }
+    </script>
+</body>
+
+</html>

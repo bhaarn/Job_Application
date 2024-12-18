@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .form-container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 1200px;
+    }
+
+    .form-container h2 {
+        text-align: center;
+    }
+
+    .form-container button {
+        width: 25%;
+        padding: 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .form-container button:hover {
+        background-color: #45a049;
+    }
+
+    .message {
+        border: 1px solid #ccc;
+        margin: 20px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+    <div class="form-container">
+    <h2>Welcome to your Dashboard</h2>
+    <p id="welcomeMessage"></p>
+
+    <button onclick="logout()">Logout</button><br><br>
+
+    <button onclick="fetchEmployeeDetails()">Fetch Employee Details</button>
+    <button onclick="fetchEmployerDetails()">Fetch Employer Details</button>
+    <button onclick="fetchApplicationDetails()">Fetch Application Details</button>
+
+    <h3>API Response:</h3>
+    <pre id="apiResponse"></pre>
+    <p class="message" id="message" name="message"></p>
+    </div>
+
+    <script>
+        // Check if the token exists in sessionStorage
+        const token = sessionStorage.getItem('jwtToken');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+
+        if (token) {
+            // If the token exists, display a welcome message
+            welcomeMessage.innerText = "Welcome Admin.  You are logged in!";
+        } else {
+            // If the token does not exist, redirect to login page
+            window.location.href = "adminlogin.html";
+        }
+
+        // Function to fetch protected data using the JWT token
+        function fetchApplicationDetails() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                // Example API request using the JWT token
+                fetch('http://localhost:8081/api/application/getallapplication', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        renderApplicationList(data);
+                        finalData = data;
+                        let selectedApplication = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function renderApplicationList(data) {
+            const applicationListDiv = document.getElementById('message');
+            applicationListDiv.innerHTML = ''; // Clear previous content
+
+            // Loop through the data and generate HTML
+            data.forEach((item, index) => {
+                const applicationDiv = document.createElement('div');
+                applicationDiv.classList.add('application-item');
+
+                applicationDiv.innerHTML = `
+          <p><strong>Application ID :</strong> ${item.id}</p>
+          <p><strong>Employee ID :</strong> ${item.employeeId}</p>
+          <p><strong>Employer ID :</strong> ${item.employerId}</p>
+          <p><strong>Salary :</strong> $${item.salary.toLocaleString()}</p>
+          <p><strong>Created Date :</strong> ${new Date(item.createdDate).toLocaleString()}</p>
+          <p><strong>Status :</strong> ${item.status}</p>
+          <hr>
+        `;
+                applicationListDiv.appendChild(applicationDiv);
+            });
+        }
+
+        function fetchEmployerDetails() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                // Example API request using the JWT token
+                fetch('http://localhost:8081/api/employer/getallemployer', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        renderEmployerList(data);
+                        let selectedJob = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function renderEmployerList(data) {
+            const userList = document.getElementById("message");
+            userList.innerHTML = ""; // Clear existing content
+
+            data.forEach(user => {
+                const userContainer = document.createElement("div");
+                userContainer.classList.add("user-container");
+
+                // User name, email, and phone
+                const userInfo = `
+                <h3>Company Name: ${user.name}</h3>
+                <p><strong>Email:</strong> ${user.emailAddress}</p>
+                <p><strong>Phone:</strong> ${user.phoneNumber}</p>
+            `;
+                userContainer.innerHTML = userInfo;
+
+                // Create a container for job items
+                const jobContainer = document.createElement("div");
+                user.job.items.forEach(item => {
+                    if (item.availability) {
+                        // Only show available jobs
+                        const jobItemContainer = document.createElement("div");
+                        jobItemContainer.classList.add("job-item");
+
+                        const jobItemRadio = `
+                            <span>${item.description}  ${item.name} - ${item.type} (Salary: $${item.salary})</span>
+                    `;
+                        jobItemContainer.innerHTML = jobItemRadio;
+                        jobContainer.appendChild(jobItemContainer);
+                    }
+                });
+
+                userContainer.appendChild(jobContainer);
+                userList.appendChild(userContainer);
+            });
+        }
+
+        function fetchEmployeeDetails() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                // Example API request using the JWT token
+                fetch('http://localhost:8081/api/employee/getallemployee', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        renderEmployeeList(data);
+                        let selectedJob = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function renderEmployeeList(data) {
+            const employeeListDiv = document.getElementById('message');
+            employeeListDiv.innerHTML = ''; // Clear previous content
+
+            // Loop through the data and generate HTML
+            data.forEach((item, index) => {
+                const employeeDiv = document.createElement('div');
+                employeeDiv.classList.add('employee-item');
+
+                employeeDiv.innerHTML = `
+          <p><strong>Employee ID :</strong> ${item.id}</p>
+          <p><strong>Employee Name :</strong> ${item.name}</p>
+          <p><strong>Email Address :</strong> ${item.emailAddress}</p>
+          <p><strong>Phone Number :</strong> ${item.phoneNumber.toLocaleString()}</p>
+          <p><strong>Resume :</strong> ${item.resumeDetails}</p>
+        `;
+                employeeListDiv.appendChild(employeeDiv);
+            });
+        }
+
+        // Logout function to clear sessionStorage and redirect to login page
+        function logout() {
+            sessionStorage.removeItem('jwtToken');  // Clear the token
+            window.location.href = "adminlogin.html";     // Redirect to login page
+        }
+    </script>
+</body>
+
+</html>
