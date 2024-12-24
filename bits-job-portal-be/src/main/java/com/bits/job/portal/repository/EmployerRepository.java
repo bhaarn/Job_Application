@@ -15,4 +15,6 @@ public interface EmployerRepository extends MongoRepository<Employer, String> {
 
     @Query("{ 'jobItems': { $elemMatch: { 'type': ?0, 'name': { $regex: ?1, $options: 'i' } } } }")
     List<Employer> findByJobItemTypeAndName(JobItemType type, String name);
+
+    Employer findByUserId(String userId);
 }

@@ -1,29 +1,36 @@
 package com.bits.job.portal.service;
 
 import com.bits.job.portal.exception.EntityNotFoundException;
+import com.bits.job.portal.model.Employer;
 import com.bits.job.portal.model.Job;
 import com.bits.job.portal.model.JobItem;
+import com.bits.job.portal.repository.EmployerRepository;
 import com.bits.job.portal.repository.JobItemRepository;
 import com.bits.job.portal.repository.JobRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class JobService {
     private final JobRepository jobRepository;
     private final JobItemRepository jobItemRepository;
+    private final EmployerRepository employerRepository;
 
     public JobItem createJobItem(String employerId, JobItem jobItem) {
         Job job = jobRepository.findByEmployerId(employerId);
+        Employer employer = employerRepository.findByUserId(employerId);
         if (job == null) {
             throw new EntityNotFoundException("Job for Employer with ID " + employerId + " not found");
         }
         jobItemRepository.save(jobItem);
         job.getItems().add(jobItem);
         jobRepository.save(job);
+        employer.setJob(job);
+        employerRepository.save(employer);
         return jobItem;
     }
 

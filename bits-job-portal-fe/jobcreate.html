@@ -137,7 +137,6 @@
 
         // Push updated data for a specific job item
         async function pushData(formData, jobItemId) {
-            console.log(formData);
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             myHeaders.append("Authorization", "Bearer " + token);
@@ -152,7 +151,6 @@
 
             await fetch(`http://localhost:8081/api/employer/${employerUserId}/job/item`, requestOptions)
                 .then(async (response) => response.json().then(function (text) {
-                    console.log(text)
                     if (typeof text.id !== 'undefined') {
                         document.getElementById('message').innerHTML = `Job item ID: ${text.id} updated successfully!`;
                         alert('Job Creation Successful');
