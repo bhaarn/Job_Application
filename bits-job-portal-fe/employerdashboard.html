@@ -11,7 +11,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
 
         .form-container {
@@ -20,7 +19,7 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 1200px;
+            width: 4800px;
         }
 
         .form-container h2 {
@@ -74,10 +73,11 @@
     <div id="application-list"></div>
 
     <button onclick="updateApplication()">Update Application</button>
-    <button onclick="editJobs()">Edit Jobs</button>
     <br><br>
     <p class="message" id="message" name="message"></p>
 
+    <button onclick="createJobs()">Create Jobs</button>
+    <button onclick="editJobs()">Edit Jobs</button>
     <button onclick="logout()">Logout</button>
     </div>
 
@@ -175,6 +175,10 @@
 
         function editJobs() {
             location.href = "jobedit.html";
+        }
+
+        function createJobs() {
+            location.href = "jobcreate.html";
         }
 
         // Function to handle the submit action

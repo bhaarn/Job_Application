@@ -71,11 +71,21 @@
 <body>
 
     <div class="form-container">
-        <h2>Job List for Editing</h2>
+        <h2>Add Jobs</h2>
         <form id="jobForm">
+            <label for="jobTable">Job Details</label>
             <table id="jobTable">
-                <!-- Dynamic rows will be populated here -->
+                <tr>
+                    <td><input type="text" class="jobName" placeholder="Job Name (e.g., Developer)"></td>
+                    <td><input type="number" class="salary" placeholder="Salary (e.g., 120000)"></td>
+                    <td><input type="text" class="description" placeholder="Description (e.g., Core Java)"></td>
+                    <td><input type="text" class="type" placeholder="Type (e.g., IT / Non IT)"></td>
+                    <td><input type="checkbox" class="availability"> Availability</td>
+                </tr>
             </table>
+
+            <button type="button" onclick="addRow()">Add Row</button>
+            <br><br>
             <button type="button" onclick="generateJSON()">Submit</button>
             <p class="message" id="message" name="message"></p>
         </form>
@@ -84,53 +94,25 @@
     <script>
         const employerUserId = sessionStorage.getItem('employerUserId');
         const token = sessionStorage.getItem('jwtToken');
-        
-        // Fetch job items from the API
-        async function fetchJobs() {
-            try {
-                const response = await fetch(`http://localhost:8081/api/employer/${employerUserId}/job`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const job = await response.json();
-                const table = document.getElementById('jobTable');
 
-                if (job && job.items && Array.isArray(job.items)) {
-                    job.items.forEach((jobItem, index) => {
-                        const row = document.createElement('tr');
-                        row.setAttribute('data-job-id', jobItem.id);  // Store job ID in the row
-                        row.innerHTML = `
-                            <td><input type="text" class="jobName" value="${jobItem.name}" readonly disabled></td>
-                            <td><input type="number" class="salary" value="${jobItem.salary}" ></td>
-                            <td><input type="text" class="description" value="${jobItem.description}" readonly disabled></td>
-                            <td><input type="text" class="type" value="${jobItem.type}" readonly disabled></td>
-                            <td><input type="checkbox" class="availability" ${jobItem.availability ? 'checked' : ''} ></td>
-                        `;
-                        table.appendChild(row);
-
-                        // Save each job item to sessionStorage with a unique key (using jobItem.id)
-                        sessionStorage.setItem(`jobItem_${jobItem.id}`, JSON.stringify(jobItem));
-                    });
-                } else {
-                    console.log("No job items found");
-                }
-            } catch (error) {
-                console.error('Error fetching job data:', error);
-            }
+        function addRow() {
+            const table = document.getElementById("jobTable");
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td><input type="text" class="jobName" placeholder="Job Name"></td>
+                <td><input type="number" class="salary" placeholder="Salary"></td>
+                <td><input type="text" class="description" placeholder="Description"></td>
+                <td><input type="text" class="type" placeholder="type"></td>
+                <td><input type="checkbox" class="availability"> Availability</td>
+            `;
+            table.appendChild(newRow);
         }
 
-        // Generate JSON from table and send PUT request
         async function generateJSON() {
             const rows = document.querySelectorAll("#jobTable tr");
             await rows.forEach(row => {
                 const jobItemId = row.getAttribute('data-job-id');
                 let job = {};
-
-                // Retrieve the stored job item from sessionStorage using its unique ID
-                const storedJob = JSON.parse(sessionStorage.getItem(`jobItem_${jobItemId}`));
 
                 // Update the job object with modified values
                 job.name = row.querySelector(".jobName") ? row.querySelector(".jobName").value : storedJob.name;
@@ -162,27 +144,25 @@
             let jsonString = JSON.stringify(formData, null, 4);
 
             const requestOptions = {
-                method: 'PUT',
+                method: 'POST',
                 headers: myHeaders,
                 body: jsonString,
                 redirect: 'follow'
             };
 
-            await fetch(`http://localhost:8081/api/employer/${employerUserId}/job/item/${jobItemId}`, requestOptions)
+            await fetch(`http://localhost:8081/api/employer/${employerUserId}/job/item`, requestOptions)
                 .then(async (response) => response.json().then(function (text) {
                     console.log(text)
                     if (typeof text.id !== 'undefined') {
                         document.getElementById('message').innerHTML = `Job item ID: ${text.id} updated successfully!`;
-                        alert('Update Successful');
+                        alert('Job Creation Successful');
                     } else {
                         document.getElementById('message').innerHTML = text.message + " - " + text.errors;
-                        alert('Update Failed');
+                        alert('Job Creation Failed');
                     }
                 }))
                 .catch((error) => console.error(error));
         }
-
-        window.onload = fetchJobs;
     </script>
 
 </body>
