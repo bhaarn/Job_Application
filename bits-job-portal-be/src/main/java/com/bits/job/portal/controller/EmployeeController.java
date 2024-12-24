@@ -42,4 +42,16 @@ public class EmployeeController {
         List<Employee> employees = employeeService.getAllEmployees();
         return ResponseEntity.ok(employees);
     }
+
+    @GetMapping("/getemployee/{employeeId}")
+    public ResponseEntity<Employee> getEmployee(@PathVariable String employeeId) {
+        Employee employee = employeeService.getEmployee(employeeId);
+        return ResponseEntity.ok(employee);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<Employee> updateEmployee(@Valid @RequestBody Employee employee) {
+        Employee updatedEmployee = employeeService.updateEmployee(employee);
+        return ResponseEntity.ok(updatedEmployee);
+    }
 }
