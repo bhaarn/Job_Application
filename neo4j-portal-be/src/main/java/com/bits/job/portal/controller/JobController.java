@@ -1,6 +1,6 @@
 package com.bits.job.portal.controller;
 
-import com.bits.job.portal.model.Employee;
+import com.bits.job.portal.model.Candidate;
 import com.bits.job.portal.model.Employer;
 import com.bits.job.portal.model.Job;
 import com.bits.job.portal.repository.EmployeeRepository;
@@ -45,7 +45,7 @@ public class JobController {
     }
 
     @PutMapping("/employee/{jobTitle}/apply")
-    public Job linkEmployeeToJob(@PathVariable String jobTitle, @RequestBody Employee employee) {
+    public Job linkEmployeeToJob(@PathVariable String jobTitle, @RequestBody Candidate employee) {
         Job job = jobRepository.findByTitle(jobTitle);
         if (job != null) {
             job.setEmployee(employee); // Set the employee to the job
@@ -59,7 +59,7 @@ public class JobController {
 
     // Add an employee to the database
     @PostMapping("/employee/add")
-    public Employee addEmployee(@RequestBody Employee employee) {
+    public Candidate addEmployee(@RequestBody Candidate employee) {
         return employeeRepository.save(employee);
     }
 
@@ -77,7 +77,7 @@ public class JobController {
 
     // Get employee by name
     @GetMapping("/employee/{name}")
-    public Employee getEmployee(@PathVariable String name) {
+    public Candidate getEmployee(@PathVariable String name) {
         return employeeRepository.findByName(name);
     }
 }

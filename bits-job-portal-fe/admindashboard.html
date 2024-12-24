@@ -58,7 +58,7 @@
 
     <button onclick="logout()">Logout</button><br><br>
 
-    <button onclick="fetchEmployeeDetails()">Fetch Employee Details</button>
+    <button onclick="fetchEmployeeDetails()">Fetch Candidate Details</button>
     <button onclick="fetchEmployerDetails()">Fetch Employer Details</button>
     <button onclick="fetchApplicationDetails()">Fetch Application Details</button>
 
@@ -116,7 +116,7 @@
 
                 applicationDiv.innerHTML = `
           <p><strong>Application ID :</strong> ${item.id}</p>
-          <p><strong>Employee ID :</strong> ${item.employeeId}</p>
+          <p><strong>Candidate ID :</strong> ${item.employeeId}</p>
           <p><strong>Employer ID :</strong> ${item.employerId}</p>
           <p><strong>Salary :</strong> $${item.salary.toLocaleString()}</p>
           <p><strong>Created Date :</strong> ${new Date(item.createdDate).toLocaleString()}</p>
@@ -183,7 +183,9 @@
                 });
 
                 userContainer.appendChild(jobContainer);
+                
                 userList.appendChild(userContainer);
+                
             });
         }
 
@@ -220,11 +222,12 @@
                 employeeDiv.classList.add('employee-item');
 
                 employeeDiv.innerHTML = `
-          <p><strong>Employee ID :</strong> ${item.id}</p>
-          <p><strong>Employee Name :</strong> ${item.name}</p>
+          <p><strong>Candidate ID :</strong> ${item.id}</p>
+          <p><strong>Candidate Name :</strong> ${item.name}</p>
           <p><strong>Email Address :</strong> ${item.emailAddress}</p>
           <p><strong>Phone Number :</strong> ${item.phoneNumber.toLocaleString()}</p>
           <p><strong>Resume :</strong> ${item.resumeDetails}</p>
+          <hr>
         `;
                 employeeListDiv.appendChild(employeeDiv);
             });

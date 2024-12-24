@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Data Update</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            color: green;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .login-link a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h2>Update Form for Candidate</h2>
+        <form id="editForm">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Update Details</button>
+            <p class="message" id="message" name="message"></p>
+        </form>
+
+    </div>
+
+    <script>
+
+        fetchEmployeeDetails();
+        
+        function fetchEmployeeDetails() {
+            const token = sessionStorage.getItem('jwtToken');
+            const employeeId = sessionStorage.getItem('employeeId');
+            if (token) {
+                fetch(`http://localhost:8081/api/employee/getemployee/${employeeId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        editProfile(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch protected data.');
+                    });
+            }
+        }
+
+        function editProfile(data) {
+            const token = sessionStorage.getItem('jwtToken');
+            const myHeaders = new Headers({ 'Authorization': `Bearer ${token}` });
+            myHeaders.append("Content-Type", "application/json");
+
+            document.getElementById('editForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                // Get form data
+                const formData = JSON.stringify({
+                    id: data.id,
+                    name: data.name,
+                    username: data.username,
+                    emailAddress: document.getElementById('email').value,
+                    phoneNumber: data.phoneNumber,
+                    password: data.password,
+                    resumeDetails: data.resumeDetails
+                });
+
+                const requestOptions = {
+                    method: 'PUT',
+                    headers: myHeaders,
+                    body: formData,
+                    redirect: 'follow'
+                };
+
+                fetch("http://localhost:8081/api/employee/update", requestOptions)
+                    .then((response) => response.json().then(function (text) {
+                        if (typeof text.id !== 'undefined') {
+                            const employeeListDiv = document.getElementById('message');
+                            employeeListDiv.innerHTML = '';
+                            const employeeDiv = document.createElement('div');
+                            employeeDiv.classList.add('employee-item');
+                            employeeDiv.innerHTML = `
+                            <p><strong>Candidate Name :</strong> ${text.name}</p>
+                            <p><strong>Email Address :</strong> ${text.emailAddress}</p>
+                            <p><strong>Phone Number :</strong> ${text.phoneNumber.toLocaleString()}</p>
+                            <p><strong>Resume :</strong> ${text.resumeDetails}</p>
+                            `;
+                            employeeListDiv.appendChild(employeeDiv);
+                          //  document.getElementById('message').innerHTML = text.id;
+                            alert('Updation Successful');
+                        } else {
+                            document.getElementById('message').innerHTML = text.message + "-" + text.errors;
+                            alert('Updation Failed');
+                        }
+                    }))
+                    .then((result) => console.log(result))
+                    .catch((error) => console.error(error));
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -21,7 +21,7 @@ public class Employer {
     @Id
     private String name;
 
-    private String company;
+    private String emailAddress;
 
     @JsonManagedReference
     @Relationship(type = "POSTED", direction = Relationship.Direction.OUTGOING)

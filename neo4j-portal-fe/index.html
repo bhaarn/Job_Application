@@ -144,13 +144,13 @@
             "constraintAttribute": "name",
             "autoExpandRelations": true // if set to true Person nodes will be automatically expanded in graph
         },
-        "Employee": {
+        "Candidate": {
             "returnAttributes": ["name", "job"],
             "constraintAttribute": "name",
             "autoExpandRelations": true
         },
         "Job":{
-            "returnAttributes": ["title", "description", "employee"],
+            "returnAttributes": ["title", "description", "salary", "type", "availability"],
             "constraintAttribute": "title",
             "autoExpandRelations": true
         }

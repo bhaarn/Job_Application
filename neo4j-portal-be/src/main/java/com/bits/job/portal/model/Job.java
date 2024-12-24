@@ -26,5 +26,5 @@ public class Job {
     private Employer employer; // The employer who posted this job
 
     @Relationship(type = "APPLIED_FOR", direction = Relationship.Direction.OUTGOING)
-    private Employee employee; // The employee who applied for the job
+    private Candidate employee; // The employee who applied for the job
 }

@@ -82,6 +82,7 @@
     <p id="welcomeMessage"></p>
 
     <button onclick="logout()">Logout</button>
+    <button onclick="editProfile()">Edit Profile</button>
 
     <h2>Job Selections</h2>
     <div id="user-list"></div>
@@ -97,26 +98,21 @@
     </div>
 
     <script>
-        // Check if the token exists in sessionStorage
         const token = sessionStorage.getItem('jwtToken');
         const welcomeMessage = document.getElementById('welcomeMessage');
         let selectedJobItem = "";
 
         if (token) {
-            // If the token exists, display a welcome message
             welcomeMessage.innerText = "You are logged in!";
         } else {
-            // If the token does not exist, redirect to login page
             window.location.href = "employeelogin.html";
         }
 
         fetchProtectedData();
 
-        // Function to fetch protected data using the JWT token
         function fetchProtectedData() {
             const token = sessionStorage.getItem('jwtToken');
             if (token) {
-                // Example API request using the JWT token
                 fetch('http://localhost:8081/api/employer/getallemployer', {
                     method: 'GET',
                     headers: {
@@ -138,13 +134,12 @@
 
         function renderUserList(data) {
             const userList = document.getElementById("user-list");
-            userList.innerHTML = ""; // Clear existing content
+            userList.innerHTML = "";
 
             data.forEach(user => {
                 const userContainer = document.createElement("div");
                 userContainer.classList.add("user-container");
 
-                // User name, email, and phone
                 const userInfo = `
                 <h3>Company Name: ${user.name}</h3>
                 <p><strong>Email:</strong> ${user.emailAddress}</p>
@@ -152,14 +147,10 @@
                 <p><strong>Please select any of the Jobs below</strong></p>
             `;
                 userContainer.innerHTML = userInfo;
-
                 sessionStorage.setItem('neoEmployerName', user.name);
-
-                // Create a container for job items
                 const jobContainer = document.createElement("div");
                 user.job.items.forEach(item => {
                     if (item.availability) {
-                        // Only show available jobs
                         const jobItemContainer = document.createElement("div");
                         jobItemContainer.classList.add("job-item");
 
@@ -203,6 +194,10 @@
             };
             console.log("Formatted Job Submission:", selectedJob);
             selectedJobItem = selectedJob;
+        }
+
+        function editProfile() {
+            location.href = "employeeedit.html";
         }
 
         function placeApplication() {
@@ -265,7 +260,6 @@
             const token = sessionStorage.getItem('jwtToken');
             let htmlContent = '';
             if (token) {
-                // Example API request using the JWT token
                 fetch(`http://localhost:8081/api/employee/${employeeId}/applications`, {
                     method: 'GET',
                     headers: {
@@ -287,7 +281,6 @@
                     `;
                         });
 
-                        // Insert the generated HTML into the desired element (e.g., a div with id 'message')
                         document.getElementById('message').innerHTML = htmlContent;
 
                     })
@@ -303,7 +296,6 @@
             const token = sessionStorage.getItem('jwtToken');
             let htmlContent = '';
             if (token) {
-                // Example API request using the JWT token
                 fetch(`http://localhost:8081/api/application/${appId}/status`, {
                     method: 'GET',
                     headers: {

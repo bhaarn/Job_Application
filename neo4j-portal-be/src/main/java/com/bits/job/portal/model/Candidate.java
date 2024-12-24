@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Node
-public class Employee {
+public class Candidate {
 
     @Id
     private String name;
 
-    private int age;
+    private String emailAddress;
 
     @Relationship(type = "APPLIED_FOR")
     private Job job;

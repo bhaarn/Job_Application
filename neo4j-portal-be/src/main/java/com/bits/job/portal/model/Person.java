@@ -19,7 +19,7 @@ public class Person {
     @Id
     private String name;
 
-    private int age;
+    private int emailAddress;
 
     @Relationship(type = "FRIEND")
     private Person friend;
