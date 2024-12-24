@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,14 +70,15 @@
     <div class="form-container">
     <p id="welcomeMessage"></p>
 
-    <button onclick="logout()">Logout</button>
-
     <h2>Job Applications</h2>
     <div id="application-list"></div>
 
     <button onclick="updateApplication()">Update Application</button>
+    <button onclick="editJobs()">Edit Jobs</button>
     <br><br>
     <p class="message" id="message" name="message"></p>
+
+    <button onclick="logout()">Logout</button>
     </div>
 
     <script>
@@ -171,6 +171,10 @@
                     statusDropdown.disabled = true;   // Disable dropdown for non-selected items
                 }
             });
+        }
+
+        function editJobs() {
+            location.href = "jobedit.html";
         }
 
         // Function to handle the submit action

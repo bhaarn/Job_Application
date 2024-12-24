@@ -174,7 +174,8 @@
                 phoneNumber: document.getElementById('mobile').value,
                 password: document.getElementById('password').value,
                 job: {
-                    items: []
+                    items: [],
+                    employerId: ""
                 }
             };
 
@@ -235,6 +236,7 @@
                     if (typeof text.id !== 'undefined') {
                         document.getElementById('message').innerHTML = text.id;
                         sessionStorage.setItem('employerId', text.id);
+                        sessionStorage.setItem('employerUserId', text.userId);
                         alert('Registration Successful');
                     } else {
                         document.getElementById('message').innerHTML = text.message + "-" + text.errors;

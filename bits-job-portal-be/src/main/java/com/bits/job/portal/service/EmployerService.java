@@ -34,6 +34,7 @@ public class EmployerService {
         userService.saveUser(employerUser);
 
         employer.setUserId(employerUser.getId());
+        employer.getJob().setEmployerId(employer.getUserId());
         employer.setJob(jobService.createJob(employer.getJob()));
         return employerRepository.save(employer);
     }

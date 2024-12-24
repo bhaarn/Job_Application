@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+        }
+
+        .form-container td {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            color: green;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h2>Job List for Editing</h2>
+        <form id="jobForm">
+            <table id="jobTable">
+                <!-- Dynamic rows will be populated here -->
+            </table>
+            <button type="button" onclick="generateJSON()">Submit</button>
+            <p class="message" id="message" name="message"></p>
+        </form>
+    </div>
+
+    <script>
+        const employerUserId = sessionStorage.getItem('employerUserId');
+        const token = sessionStorage.getItem('jwtToken');
+        
+        // Fetch job items from the API
+        async function fetchJobs() {
+            try {
+                const response = await fetch(`http://localhost:8081/api/employer/${employerUserId}/job`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const job = await response.json();
+                const table = document.getElementById('jobTable');
+
+                if (job && job.items && Array.isArray(job.items)) {
+                    job.items.forEach((jobItem, index) => {
+                        const row = document.createElement('tr');
+                        row.setAttribute('data-job-id', jobItem.id);  // Store job ID in the row
+                        row.innerHTML = `
+                            <td><input type="text" class="jobName" value="${jobItem.name}" readonly disabled></td>
+                            <td><input type="number" class="salary" value="${jobItem.salary}" ></td>
+                            <td><input type="text" class="description" value="${jobItem.description}" readonly disabled></td>
+                            <td><input type="text" class="type" value="${jobItem.type}" readonly disabled></td>
+                            <td><input type="checkbox" class="availability" ${jobItem.availability ? 'checked' : ''} ></td>
+                        `;
+                        table.appendChild(row);
+
+                        // Save each job item to sessionStorage with a unique key (using jobItem.id)
+                        sessionStorage.setItem(`jobItem_${jobItem.id}`, JSON.stringify(jobItem));
+                    });
+                } else {
+                    console.log("No job items found");
+                }
+            } catch (error) {
+                console.error('Error fetching job data:', error);
+            }
+        }
+
+        // Generate JSON from table and send PUT request
+        async function generateJSON() {
+            const rows = document.querySelectorAll("#jobTable tr");
+            await rows.forEach(row => {
+                const jobItemId = row.getAttribute('data-job-id');
+                let job = {};
+
+                // Retrieve the stored job item from sessionStorage using its unique ID
+                const storedJob = JSON.parse(sessionStorage.getItem(`jobItem_${jobItemId}`));
+
+                // Update the job object with modified values
+                job.name = row.querySelector(".jobName") ? row.querySelector(".jobName").value : storedJob.name;
+                job.salary = row.querySelector(".salary") ? parseInt(row.querySelector(".salary").value) : storedJob.salary;
+                job.description = row.querySelector(".description") ? row.querySelector(".description").value : storedJob.description;
+                job.type = row.querySelector(".type") ? row.querySelector(".type").value : storedJob.type;
+                job.availability = row.querySelector(".availability") ? row.querySelector(".availability").checked : storedJob.availability;
+
+                // Only push if the job has necessary details
+                if (job.name && job.salary && job.description && job.type) {
+                    let formData = {
+                        name: job.name,
+                        salary: job.salary,
+                        description: job.description,
+                        availability: job.availability,
+                        type: job.type
+                    };
+                    pushData(formData, jobItemId);  // Push data for specific job item
+                }
+            });
+        }
+
+        // Push updated data for a specific job item
+        async function pushData(formData, jobItemId) {
+            console.log(formData);
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", "Bearer " + token);
+            let jsonString = JSON.stringify(formData, null, 4);
+
+            const requestOptions = {
+                method: 'PUT',
+                headers: myHeaders,
+                body: jsonString,
+                redirect: 'follow'
+            };
+
+            await fetch(`http://localhost:8081/api/employer/${employerUserId}/job/item/${jobItemId}`, requestOptions)
+                .then(async (response) => response.json().then(function (text) {
+                    console.log(text)
+                    if (typeof text.id !== 'undefined') {
+                        document.getElementById('message').innerHTML = `Job item ID: ${text.id} updated successfully!`;
+                        alert('Update Successful');
+                    } else {
+                        document.getElementById('message').innerHTML = text.message + " - " + text.errors;
+                        alert('Update Failed');
+                    }
+                }))
+                .catch((error) => console.error(error));
+        }
+
+        window.onload = fetchJobs;
+    </script>
+
+</body>
+
+</html>

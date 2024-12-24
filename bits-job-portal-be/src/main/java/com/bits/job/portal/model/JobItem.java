@@ -28,7 +28,7 @@ public class JobItem {
     private Double salary;
 
     @NotBlank(message = "Description is mandatory")
-    @Size(min = 5, max = 500, message = "Description must be between 5 and 500 characters")
+    @Size(min = 4, max = 500, message = "Description must be between 5 and 500 characters")
     private String description;
 
     @NotNull(message = "Availability is mandatory")
