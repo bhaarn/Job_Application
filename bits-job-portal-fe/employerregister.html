@@ -235,6 +235,7 @@
                         document.getElementById('message').innerHTML = text.id;
                         sessionStorage.setItem('employerId', text.id);
                         sessionStorage.setItem('employerUserId', text.userId);
+                        sessionStorage.setItem('employerName', text.name);
                         alert('Registration Successful');
                     } else {
                         document.getElementById('message').innerHTML = text.message + "-" + text.errors;

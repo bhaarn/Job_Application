@@ -140,6 +140,35 @@
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             myHeaders.append("Authorization", "Bearer " + token);
+
+            let formNeoJobData = {
+                title: formData.name,
+                description: formData.description,
+                employer: {
+                    name: sessionStorage.getItem('employerName')
+                }
+            };
+
+            let jsonNeoJobString = JSON.stringify(formNeoJobData, null, 4);
+
+            const requestNeoJobOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: jsonNeoJobString,
+                redirect: 'follow'
+            };
+
+            fetch("http://localhost:8080/api/job/add", requestNeoJobOptions)
+                    .then(async (response) => response.json().then(function (text) {
+                        if (typeof text.title !== 'undefined') {
+                            alert('Neo4J Job Addition Successful');
+                        } else {
+                            alert('Neo4J Job Addition Failed');
+                        }
+                    }))
+                    .then((result) => console.log(result))
+                    .catch((error) => console.error(error));
+
             let jsonString = JSON.stringify(formData, null, 4);
 
             const requestOptions = {
